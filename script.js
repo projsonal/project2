@@ -1,4 +1,5 @@
 const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+let trash = [];
 
 function generateTable() {
   for (let i = 0; i < 7; i++) addRow(i);
@@ -29,7 +30,7 @@ function addRow(offset = null) {
     <td class="py-3 px-4 akhir-status">Belum Selesai tugasnya.</td>
     <td class="py-3 px-4">
       <button class="edit-btn" onclick="editRow(this)">Edit</button>
-      <button class="delete-btn" onclick="deleteRow(this)">Hapus</button>
+      <button class="delete-btn" onclick="moveToTrash(this)">Hapus</button>
     </td>
   `;
   tbody.appendChild(row);
@@ -44,7 +45,6 @@ function updateDay(input) {
 function updateAkhirStatus(select) {
   const akhirStatusCell = select.parentElement.parentElement.querySelector('.akhir-status');
   const value = select.value;
-
   if (value === 'Belum Dikerjakan') {
     akhirStatusCell.textContent = 'Belum Selesai tugasnya.';
   } else if (value === 'Proses') {
@@ -54,14 +54,39 @@ function updateAkhirStatus(select) {
   }
 }
 
-function deleteRow(button) {
-  button.parentElement.parentElement.remove();
+function moveToTrash(button) {
+  const row = button.parentElement.parentElement;
+  trash.push(row.innerHTML);
+  row.remove();
+  updateTrash();
 }
 
-function editRow(button) {
-  const row = button.parentElement.parentElement;
-  const inputs = row.querySelectorAll('input, select');
-  inputs.forEach(input => input.removeAttribute('disabled'));
+function updateTrash() {
+  const trashBody = document.getElementById('trashBody');
+  trashBody.innerHTML = '';
+  trash.forEach((item, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = item + `
+      <td class="py-3 px-4">
+        <button class="restore-btn" onclick="restoreRow(${index})">Batal</button>
+        <button class="delete-btn" onclick="deletePermanently(${index})">Hapus Permanen</button>
+      </td>`;
+    trashBody.appendChild(tr);
+  });
+}
+
+function restoreRow(index) {
+  const tbody = document.getElementById('jadwalBody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = trash[index];
+  tbody.appendChild(tr);
+  trash.splice(index, 1);
+  updateTrash();
+}
+
+function deletePermanently(index) {
+  trash.splice(index, 1);
+  updateTrash();
 }
 
 function printToPDF() {
