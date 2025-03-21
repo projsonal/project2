@@ -69,7 +69,7 @@ function updateTrashTable() {
     const row = document.createElement('tr');
     row.innerHTML = rowHtml;
     row.querySelector(".delete-btn").textContent = "Hapus Permanen";
-    row.querySelector(".delete-btn").setAttribute("onclick", `deletePermanently(${index})`);
+    row.querySelector(".delete-btn").setAttribute("onclick", `confirmDelete(${index})`);
     row.querySelector(".edit-btn").textContent = "Batal";
     row.querySelector(".edit-btn").setAttribute("onclick", `restoreFromTrash(${index})`);
     trashBody.appendChild(row);
@@ -83,6 +83,12 @@ function restoreFromTrash(index) {
   tbody.appendChild(row);
   trash.splice(index, 1);
   updateTrashTable();
+}
+
+function confirmDelete(index) {
+  if (confirm("Apakah Anda yakin ingin menghapus data ini secara permanen?")) {
+    deletePermanently(index);
+  }
 }
 
 function deletePermanently(index) {
