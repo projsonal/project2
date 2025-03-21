@@ -1,99 +1,82 @@
 const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 let trash = [];
+let savedData = JSON.parse(localStorage.getItem("jadwalData")) || [];
 
 function generateTable() {
-  for (let i = 0; i < 7; i++) addRow(i);
+  const tbody = document.getElementById('jadwalBody');
+  tbody.innerHTML = ""; // Kosongkan tabel saat pertama kali dimuat
+  savedData.forEach(data => addRow(data));
 }
 
-function addRow(offset = null) {
+function addRow(data = null) {
   const tbody = document.getElementById('jadwalBody');
-  const today = new Date();
-  const date = new Date(today);
-  if (offset !== null) date.setDate(today.getDate() + offset);
-  const tanggal = offset !== null ? date.toISOString().split('T')[0] : '';
-  const namaHari = offset !== null ? hari[date.getDay()] : '';
-
   const row = document.createElement('tr');
+
+  const tanggal = data ? data.tanggal : "";
+  const namaHari = data ? data.hari : "";
+  const kegiatan = data ? data.kegiatan : "";
+  const status = data ? data.status : "Belum Dikerjakan";
+  const waktuMulai = data ? data.waktuMulai : "";
+  const waktuSelesai = data ? data.waktuSelesai : "";
+  const akhirStatus = getAkhirStatus(status);
+
   row.innerHTML = `
     <td><input type="date" value="${tanggal}" class="border p-2 rounded" onchange="updateDay(this)"></td>
     <td class="day-cell">${namaHari}</td>
-    <td><input type="text" class="border p-2 rounded"></td>
+    <td><input type="text" class="border p-2 rounded" value="${kegiatan}"></td>
     <td>
       <select class="status-dropdown border p-2 rounded" onchange="updateAkhirStatus(this)">
-        <option value="Belum Dikerjakan">Belum Dikerjakan</option>
-        <option value="Proses">Proses</option>
-        <option value="Selesai">Selesai</option>
+        <option value="Belum Dikerjakan" ${status === "Belum Dikerjakan" ? "selected" : ""}>Belum Dikerjakan</option>
+        <option value="Proses" ${status === "Proses" ? "selected" : ""}>Proses</option>
+        <option value="Selesai" ${status === "Selesai" ? "selected" : ""}>Selesai</option>
       </select>
     </td>
-    <td><input type="time" class="border p-2 rounded"></td>
-    <td><input type="time" class="border p-2 rounded"></td>
-    <td class="akhir-status">Belum Selesai tugasnya.</td>
+    <td><input type="time" class="border p-2 rounded" value="${waktuMulai}"></td>
+    <td><input type="time" class="border p-2 rounded" value="${waktuSelesai}"></td>
+    <td class="akhir-status">${akhirStatus}</td>
     <td>
       <button class="edit-btn" onclick="editRow(this)">Edit</button>
       <button class="delete-btn" onclick="moveToTrash(this)">Hapus</button>
     </td>
   `;
   tbody.appendChild(row);
+  saveData();
 }
 
 function updateDay(input) {
   const dayCell = input.parentElement.parentElement.querySelector('.day-cell');
   const date = new Date(input.value);
   dayCell.textContent = isNaN(date) ? '' : hari[date.getDay()];
+  saveData();
 }
 
 function updateAkhirStatus(select) {
   const akhirStatusCell = select.parentElement.parentElement.querySelector('.akhir-status');
-  const value = select.value;
-
-  if (value === 'Belum Dikerjakan') {
-    akhirStatusCell.textContent = 'Belum Selesai tugasnya.';
-  } else if (value === 'Proses') {
-    akhirStatusCell.textContent = 'Sedang dilakukan tugasnya.';
-  } else {
-    akhirStatusCell.textContent = 'Sudah selesai tugasnya.';
-  }
+  akhirStatusCell.textContent = getAkhirStatus(select.value);
+  saveData();
 }
 
-function moveToTrash(button) {
-  const row = button.parentElement.parentElement;
-  trash.push(row.innerHTML);
-  row.remove();
-  updateTrashTable();
+function getAkhirStatus(status) {
+  if (status === 'Belum Dikerjakan') return 'Belum Selesai tugasnya.';
+  if (status === 'Proses') return 'Sedang dilakukan tugasnya.';
+  return 'Sudah selesai tugasnya.';
 }
 
-function updateTrashTable() {
-  const trashBody = document.getElementById('trashBody');
-  trashBody.innerHTML = '';
-  trash.forEach((rowHtml, index) => {
-    const row = document.createElement('tr');
-    row.innerHTML = rowHtml;
-    row.querySelector(".delete-btn").textContent = "Hapus Permanen";
-    row.querySelector(".delete-btn").setAttribute("onclick", `confirmDelete(${index})`);
-    row.querySelector(".edit-btn").textContent = "Batal";
-    row.querySelector(".edit-btn").setAttribute("onclick", `restoreFromTrash(${index})`);
-    trashBody.appendChild(row);
+function saveData() {
+  const rows = document.querySelectorAll('#jadwalBody tr');
+  const newData = [];
+  rows.forEach(row => {
+    const inputs = row.querySelectorAll('input, select');
+    newData.push({
+      tanggal: inputs[0].value,
+      hari: row.querySelector('.day-cell').textContent,
+      kegiatan: inputs[1].value,
+      status: inputs[2].value,
+      waktuMulai: inputs[3].value,
+      waktuSelesai: inputs[4].value,
+    });
   });
-}
-
-function restoreFromTrash(index) {
-  const tbody = document.getElementById('jadwalBody');
-  const row = document.createElement('tr');
-  row.innerHTML = trash[index];
-  tbody.appendChild(row);
-  trash.splice(index, 1);
-  updateTrashTable();
-}
-
-function confirmDelete(index) {
-  if (confirm("Apakah Anda yakin ingin menghapus data ini secara permanen?")) {
-    deletePermanently(index);
-  }
-}
-
-function deletePermanently(index) {
-  trash.splice(index, 1);
-  updateTrashTable();
+  localStorage.setItem("jadwalData", JSON.stringify(newData));
 }
 
 generateTable();
