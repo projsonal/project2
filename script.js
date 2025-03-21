@@ -15,20 +15,20 @@ function addRow(offset = null) {
 
   const row = document.createElement('tr');
   row.innerHTML = `
-    <td class="py-3 px-4"><input type="date" value="${tanggal}" class="w-full border p-2 rounded" onchange="updateDay(this)"></td>
-    <td class="py-3 px-4 day-cell">${namaHari}</td>
-    <td class="py-3 px-4"><input type="text" class="w-full border p-2 rounded"></td>
-    <td class="py-3 px-4">
-      <select class="status-dropdown w-full border p-2 rounded" onchange="updateAkhirStatus(this)">
+    <td><input type="date" value="${tanggal}" class="border p-2 rounded" onchange="updateDay(this)"></td>
+    <td class="day-cell">${namaHari}</td>
+    <td><input type="text" class="border p-2 rounded"></td>
+    <td>
+      <select class="status-dropdown border p-2 rounded" onchange="updateAkhirStatus(this)">
         <option value="Belum Dikerjakan">Belum Dikerjakan</option>
         <option value="Proses">Proses</option>
         <option value="Selesai">Selesai</option>
       </select>
     </td>
-    <td class="py-3 px-4"><input type="time" class="w-full border p-2 rounded"></td>
-    <td class="py-3 px-4"><input type="time" class="w-full border p-2 rounded"></td>
-    <td class="py-3 px-4 akhir-status">Belum Selesai tugasnya.</td>
-    <td class="py-3 px-4">
+    <td><input type="time" class="border p-2 rounded"></td>
+    <td><input type="time" class="border p-2 rounded"></td>
+    <td class="akhir-status">Belum Selesai tugasnya.</td>
+    <td>
       <button class="edit-btn" onclick="editRow(this)">Edit</button>
       <button class="delete-btn" onclick="moveToTrash(this)">Hapus</button>
     </td>
@@ -45,6 +45,7 @@ function updateDay(input) {
 function updateAkhirStatus(select) {
   const akhirStatusCell = select.parentElement.parentElement.querySelector('.akhir-status');
   const value = select.value;
+
   if (value === 'Belum Dikerjakan') {
     akhirStatusCell.textContent = 'Belum Selesai tugasnya.';
   } else if (value === 'Proses') {
@@ -58,40 +59,35 @@ function moveToTrash(button) {
   const row = button.parentElement.parentElement;
   trash.push(row.innerHTML);
   row.remove();
-  updateTrash();
+  updateTrashTable();
 }
 
-function updateTrash() {
+function updateTrashTable() {
   const trashBody = document.getElementById('trashBody');
   trashBody.innerHTML = '';
-  trash.forEach((item, index) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = item + `
-      <td class="py-3 px-4">
-        <button class="restore-btn" onclick="restoreRow(${index})">Batal</button>
-        <button class="delete-btn" onclick="deletePermanently(${index})">Hapus Permanen</button>
-      </td>`;
-    trashBody.appendChild(tr);
+  trash.forEach((rowHtml, index) => {
+    const row = document.createElement('tr');
+    row.innerHTML = rowHtml;
+    row.querySelector(".delete-btn").textContent = "Hapus Permanen";
+    row.querySelector(".delete-btn").setAttribute("onclick", `deletePermanently(${index})`);
+    row.querySelector(".edit-btn").textContent = "Batal";
+    row.querySelector(".edit-btn").setAttribute("onclick", `restoreFromTrash(${index})`);
+    trashBody.appendChild(row);
   });
 }
 
-function restoreRow(index) {
+function restoreFromTrash(index) {
   const tbody = document.getElementById('jadwalBody');
-  const tr = document.createElement('tr');
-  tr.innerHTML = trash[index];
-  tbody.appendChild(tr);
+  const row = document.createElement('tr');
+  row.innerHTML = trash[index];
+  tbody.appendChild(row);
   trash.splice(index, 1);
-  updateTrash();
+  updateTrashTable();
 }
 
 function deletePermanently(index) {
   trash.splice(index, 1);
-  updateTrash();
-}
-
-function printToPDF() {
-  const element = document.body;
-  html2pdf().from(element).save('jadwal_harian.pdf');
+  updateTrashTable();
 }
 
 generateTable();

@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gray-100 p-6">
   <div class="max-w-7xl mx-auto">
@@ -22,16 +23,36 @@
             <th class="py-3 px-4">Tanggal</th>
             <th class="py-3 px-4">Hari</th>
             <th class="py-3 px-4">Kegiatan</th>
-            <th class="py-3 px-4">status</th> 
+            <th class="py-3 px-4">Status</th>
             <th class="py-3 px-4">Waktu Mulai</th>
             <th class="py-3 px-4">Waktu Selesai</th>
-            <th class="py-3 px-4">Akhir status</th>
+            <th class="py-3 px-4">Akhir Status</th>
             <th class="py-3 px-4">Aksi</th>
           </tr>
         </thead>
         <tbody id="jadwalBody"></tbody>
       </table>
     </div>
+    
+    <div class="mt-8">
+      <h3 class="text-xl font-semibold mb-3">Sampah Sementara</h3>
+      <table class="w-full bg-white shadow-md rounded-lg" id="trashTable">
+        <thead class="bg-red-300 text-gray-700">
+          <tr>
+            <th class="py-3 px-4">Tanggal</th>
+            <th class="py-3 px-4">Hari</th>
+            <th class="py-3 px-4">Kegiatan</th>
+            <th class="py-3 px-4">Status</th>
+            <th class="py-3 px-4">Waktu Mulai</th>
+            <th class="py-3 px-4">Waktu Selesai</th>
+            <th class="py-3 px-4">Akhir Status</th>
+            <th class="py-3 px-4">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="trashBody"></tbody>
+      </table>
+    </div>
+    
     <div class="mt-8">
       <h3 class="text-xl font-semibold mb-3">Statistik Status</h3>
       <canvas id="statusChart" class="bg-white p-4 rounded shadow-md"></canvas>
