@@ -1,39 +1,34 @@
 const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
 function generateTable() {
+  for (let i = 0; i < 7; i++) addRow(i);
+}
+
+function addRow(offset = null) {
   const tbody = document.getElementById('jadwalBody');
   const today = new Date();
-
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    addRowToTable(date);
-  }
-  updateChart();
-}
-
-function addRow(date = new Date()) {
-  date.setHours(0, 0, 0, 0);
-  addRowToTable(date);
-  updateChart();
-}
-
-function addRowToTable(date) {
-  const tbody = document.getElementById('jadwalBody');
-  const tanggal = date.toISOString().split('T')[0];
-  const namaHari = hari[date.getDay()];
+  const date = new Date(today);
+  if (offset !== null) date.setDate(today.getDate() + offset);
+  const tanggal = offset !== null ? date.toISOString().split('T')[0] : '';
+  const namaHari = offset !== null ? hari[date.getDay()] : '';
 
   const row = document.createElement('tr');
   row.innerHTML = `
-    <td>${tanggal}</td>
-    <td>${namaHari}</td>
-    <td><input type="text" oninput="updateStatus(this)"></td>
-    <td><input type="text"></td>
-    <td><input type="text"></td>
-    <td class="status">Belum Dilakukan</td>
+    <td class="py-2 px-4"><input type="date" value="${tanggal}" class="w-full" onchange="updateDay(this)"></td>
+    <td class="py-2 px-4 day-cell">${namaHari}</td>
+    <td class="py-2 px-4"><input type="text" class="w-full" oninput="updateStatus(this)"></td>
+    <td class="py-2 px-4"><input type="time" class="w-full"></td>
+    <td class="py-2 px-4"><input type="time" class="w-full"></td>
+    <td class="py-2 px-4 status">Belum Dilakukan</td>
   `;
-
   tbody.appendChild(row);
+  updateChart();
+}
+
+function updateDay(input) {
+  const dayCell = input.parentElement.parentElement.querySelector('.day-cell');
+  const date = new Date(input.value);
+  dayCell.textContent = isNaN(date) ? '' : hari[date.getDay()];
 }
 
 function updateStatus(input) {
@@ -47,48 +42,50 @@ function updateStatus(input) {
   } else {
     statusCell.textContent = 'Selesai';
   }
-
   updateChart();
 }
 
+function printToPDF() {
+  window.print();
+}
+
 function updateChart() {
-  const statusCounts = {
-    "Belum Dilakukan": 0,
-    "Sedang Dilakukan": 0,
-    "Selesai": 0
+  const statuses = Array.from(document.querySelectorAll('.status')).map(cell => cell.textContent);
+  const counts = {
+    'Belum Dilakukan': 0,
+    'Sedang Dilakukan': 0,
+    'Selesai': 0
   };
 
-  document.querySelectorAll(".status").forEach(cell => {
-    if (statusCounts.hasOwnProperty(cell.textContent)) {
-      statusCounts[cell.textContent]++;
-    }
+  statuses.forEach(status => {
+    if (counts.hasOwnProperty(status)) counts[status]++;
   });
 
-  const ctx = document.getElementById('statusChart').getContext('2d');
-  if (window.statusChart) window.statusChart.destroy();
-  window.statusChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: Object.keys(statusCounts),
-      datasets: [{
-        label: 'Jumlah Status',
-        data: Object.values(statusCounts),
-        backgroundColor: ['#ccc', '#f4a261', '#2a9d8f']
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false }
+  if (window.statusChart) {
+    window.statusChart.data.datasets[0].data = Object.values(counts);
+    window.statusChart.update();
+  } else {
+    const ctx = document.getElementById('statusChart');
+    window.statusChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(counts),
+        datasets: [{
+          label: 'Jumlah Status',
+          data: Object.values(counts),
+          backgroundColor: ['#f87171', '#facc15', '#4ade80']
+        }]
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          precision: 0
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
         }
       }
-    }
-  });
+    });
+  }
 }
 
 generateTable();
